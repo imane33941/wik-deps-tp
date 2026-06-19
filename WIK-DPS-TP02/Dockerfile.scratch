@@ -1,0 +1,13 @@
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY package.json pnpm-lock.yaml ./
+RUN corepack enable
+RUN pnpm install --frozen-lockfile
+COPY tsconfig.json ./ 
+COPY src ./src
+RUN pnpm run build
+RUN npx pkg dist/counter.js --target node20-linux-x64 --output /counter
+
+FROM scratch
+COPY --from=builder /counter /counter
+CMD ["/counter"]
